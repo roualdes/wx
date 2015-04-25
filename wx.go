@@ -97,6 +97,7 @@ type Data struct {
 }
 type Wx struct {
 	Place string `xml:"data>location>description"`
+	Place2 string `xml:"data>location>area-description"`
 	Time string `xml:"head>product>creation-date"`
 	HalfDay []Day `xml:"data>time-layout>start-valid-time"`
 	Parameter Data `xml:"data>parameters"`
@@ -125,10 +126,23 @@ func Weather(ll []string) (wx Wx) {
 	return
 }
 
+// PlaceTime prints the location and time of the ZIP code provided
+func PlaceTime(wx Wx) {
+	place := ""
+	if wx.Place != "" {
+		place = wx.Place
+	} else {
+		place = wx.Place2
+	}
+	fmt.Printf("%s @ %s\n", place, wx.Time)
+}
+
 // Forecast prints a NOAA weather forecast
 func Forecast(wx Wx) {
-	for i, T := range wx.HalfDay[1:15] {
-		fmt.Printf("%s\n", T.Value)
+	PlaceTime(wx)
+	t := len(wx.Parameter.Description)
+	for i, Time := range wx.HalfDay[0:t] {
+		fmt.Printf("%s\n", Time.Value)
 		lines := strings.SplitAfter(wx.Parameter.Description[i], ".")
 		for _, line := range lines {
 			fmt.Printf("  %s\n", strings.TrimLeft(line, " "))
@@ -138,11 +152,13 @@ func Forecast(wx Wx) {
 
 // Current prints NOAA current weather
 func Current(wx Wx) {
-	fmt.Printf("  Summary: %s\n", wx.Parameter.Condition[14].Summary)
-	fmt.Printf("  Temperature (F): %s\n", wx.Parameter.Temperature[14])
-	fmt.Printf("  Dew Point (F): %s\n", wx.Parameter.Temperature[15])
+	PlaceTime(wx)
+	t := len(wx.Parameter.Temperature)
+	fmt.Printf("  Summary: %s\n", wx.Parameter.Condition[t-2].Summary)
+	fmt.Printf("  Temperature (F): %s\n", wx.Parameter.Temperature[t-2])
+	fmt.Printf("  Dew Point (F): %s\n", wx.Parameter.Temperature[t-1])
 	fmt.Printf("  Humidity: %s\n", wx.Parameter.Humidity)
-	fmt.Printf("  Visibility: %s\n", wx.Parameter.Condition[15].Visibility)
+	fmt.Printf("  Visibility: %s\n", wx.Parameter.Condition[t-1].Visibility)
 	fmt.Printf("  Wind Gust (max, knots): %s\n", wx.Parameter.WindSpeed[0])
 	fmt.Printf("  Wind Sustained (knots): %s\n", wx.Parameter.WindSpeed[1])
 	fmt.Printf("  Pressure (in): %s\n", wx.Parameter.Pressure)
@@ -192,13 +208,12 @@ USAGE:
 			Aliases: []string{"f"},
 			Usage: "7 day NOAA weather forecast",
 			Action: func(c *cli.Context) {
-				zipcode := "95926" // default location
+				zipcode := "40502" // default location
 				if len(c.Args()) > 0 {
 					zipcode = c.Args()[0]
 				}
-				ll := LatLon(zipcode) // get latlon
-				wx := Weather(ll)    // parse XML into Wx
-				fmt.Printf("%s @ %s\n", wx.Place, wx.Time)
+				ll := LatLon(zipcode)
+				wx := Weather(ll)
 				Forecast(wx)
 			},
 		},
@@ -207,13 +222,12 @@ USAGE:
 			Aliases: []string{"c"},
 			Usage: "current NOAA weather",
 			Action: func(c *cli.Context) {
-				zipcode := "95926" // default location
+				zipcode := "40502" // default location
 				if len(c.Args()) > 0 {
 					zipcode = c.Args()[0]
 				}
-				ll := LatLon(zipcode) // get latlon
-				wx := Weather(ll)    // parse XML into Wx
-				fmt.Printf("%s @ %s\n", wx.Place, wx.Time)
+				ll := LatLon(zipcode)
+				wx := Weather(ll)
 				Current(wx)
 			},
 		},
