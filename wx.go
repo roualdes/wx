@@ -142,11 +142,7 @@ func Forecast(wx Wx) {
 	PlaceTime(wx)
 	t := len(wx.Parameter.Description)
 	for i, Time := range wx.HalfDay[0:t] {
-		fmt.Printf("%s\n", Time.Value)
-		lines := strings.SplitAfter(wx.Parameter.Description[i], ".")
-		for _, line := range lines {
-			fmt.Printf("  %s\n", strings.TrimLeft(line, " "))
-		}
+		fmt.Printf("%s: %s\n", Time.Value, wx.Parameter.Description[i])
 	}
 }
 
@@ -208,7 +204,7 @@ USAGE:
 			Aliases: []string{"f"},
 			Usage: "7 day NOAA weather forecast",
 			Action: func(c *cli.Context) {
-				zipcode := "40502" // default location
+				zipcode := "95926" // default location
 				if len(c.Args()) > 0 {
 					zipcode = c.Args()[0]
 				}
@@ -222,7 +218,7 @@ USAGE:
 			Aliases: []string{"c"},
 			Usage: "current NOAA weather",
 			Action: func(c *cli.Context) {
-				zipcode := "40502" // default location
+				zipcode := "95926" // default location
 				if len(c.Args()) > 0 {
 					zipcode = c.Args()[0]
 				}
