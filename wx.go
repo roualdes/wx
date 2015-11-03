@@ -1,27 +1,12 @@
 // wx - Get NOAA weather.
-// Copyright (C) 2015 Edward A. Rouadles
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package main
 
 import (
 	"bytes"
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
 	"encoding/xml"
 	"fmt"
 	"github.com/codegangsta/cli"
+	"golang.org/x/net/html/charset"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -38,14 +23,14 @@ func Body(url string) (body []byte) {
 		os.Exit(2)
 	}
 	defer resp.Body.Close()
-	
+
 	// read Body
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(2)
 	}
-	
+
 	return
 }
 
@@ -61,13 +46,13 @@ func LatLon(zip string) (latlon []string) {
 	// some data
 	zipreq := "http://graphical.weather.gov/xml/SOAP_server/ndfdXMLclient.php?listZipCodeList=%s"
 	type LL struct {
-		LatLon  string   `xml:"latLonList"`
+		LatLon string `xml:"latLonList"`
 	}
 
 	// request LatLon in XML
 	url := fmt.Sprintf(zipreq, zip)
 	body := Body(url)
-	
+
 	// parse LatLon from XML
 	var ll LL
 	if err := xml.Unmarshal(body, &ll); err != nil {
@@ -83,25 +68,24 @@ type Day struct {
 	Value string `xml:"period-name,attr"`
 }
 type Cond struct {
-	Summary string `xml:"weather-summary,attr"`
+	Summary    string `xml:"weather-summary,attr"`
 	Visibility string `xml:"value>visibility"` // miles
 }
 type Data struct {
-	Humidity string `xml:"humidity>value"` // relative
-	Condition []Cond `xml:"weather>weather-conditions"`
-	WindDirection string `xml:"direction>value"` // degrees true
-	WindSpeed []string `xml:"wind-speed>value"`  // gust, sustained, knots
-	Pressure string `xml:"pressure>value"` // Barometric, inches of mercury
-	Temperature []string `xml:"temperature>value"` // Farenheit
-	Description []string `xml:"wordedForecast>text"`
+	Humidity      string   `xml:"humidity>value"` // relative
+	Condition     []Cond   `xml:"weather>weather-conditions"`
+	WindDirection string   `xml:"direction>value"`   // degrees true
+	WindSpeed     []string `xml:"wind-speed>value"`  // gust, sustained, knots
+	Pressure      string   `xml:"pressure>value"`    // Barometric, inches of mercury
+	Temperature   []string `xml:"temperature>value"` // Farenheit
+	Description   []string `xml:"wordedForecast>text"`
 }
 type Wx struct {
-	Place string `xml:"data>location>description"`
-	Place2 string `xml:"data>location>area-description"`
-	Time string `xml:"head>product>creation-date"`
-	HalfDay []Day `xml:"data>time-layout>start-valid-time"`
-	Parameter Data `xml:"data>parameters"`
-
+	Place     string `xml:"data>location>description"`
+	Place2    string `xml:"data>location>area-description"`
+	Time      string `xml:"head>product>creation-date"`
+	HalfDay   []Day  `xml:"data>time-layout>start-valid-time"`
+	Parameter Data   `xml:"data>parameters"`
 }
 
 // Weather retrieves NOAA weather updates for a LatLon coordinates.
@@ -115,7 +99,7 @@ func Weather(ll []string) (wx Wx) {
 	body := Body(url)
 	reader := bytes.NewReader(body)
 	decoder := xml.NewDecoder(reader)
-	decoder.CharsetReader = charset.NewReader
+	decoder.CharsetReader = charset.NewReaderLabel
 
 	// decode XML
 	if err := decoder.Decode(&wx); err != nil {
@@ -186,23 +170,23 @@ GLOBAL OPTIONS:
 USAGE:
    wx {{.Name}}{{if .Flags}} [command options]{{end}} ZIPCODE
 `
-	
+
 	app := cli.NewApp()
 	app.Name = "wx"
 	app.Version = "0.1.0"
 	app.Usage = "Get NOAA weather."
 	app.Authors = []cli.Author{
 		cli.Author{
-			Name: "Edward A. Roualdes",
-			Email: "edward.roualdes@uky.edu",
+			Name:  "Edward A. Roualdes",
+			Email: "eroualdes@csuchico.edu",
 		},
 	}
 
 	app.Commands = []cli.Command{
 		{
-			Name: "forecast",
+			Name:    "forecast",
 			Aliases: []string{"f"},
-			Usage: "7 day NOAA weather forecast",
+			Usage:   "7 day NOAA weather forecast",
 			Action: func(c *cli.Context) {
 				zipcode := "95926" // default location
 				if len(c.Args()) > 0 {
@@ -214,9 +198,9 @@ USAGE:
 			},
 		},
 		{
-			Name: "current",
+			Name:    "current",
 			Aliases: []string{"c"},
-			Usage: "current NOAA weather",
+			Usage:   "current NOAA weather",
 			Action: func(c *cli.Context) {
 				zipcode := "95926" // default location
 				if len(c.Args()) > 0 {

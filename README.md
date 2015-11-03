@@ -18,10 +18,10 @@ $ go get github.com/roualdes/wx
 Only two commands are available `forecast` and `current`.  Each command takes an optional argument `ZIPCODE`, a five digit ZIP code corresponding to the location of interest.  Try
 
 ```
-$ wx current 95926
+$ wx current 40502
 ```
 
-If you don't specify a ZIP code, `wx` uses 40502.  Print help with
+If you don't specify a ZIP code, `wx` uses 95926.  Print help with
 
 ```
 $ wx help
