@@ -5,12 +5,14 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"github.com/codegangsta/cli"
-	"golang.org/x/net/html/charset"
+	"go/doc"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/codegangsta/cli"
+	"golang.org/x/net/html/charset"
 )
 
 // Body requests url and returns body.
@@ -123,10 +125,16 @@ func PlaceTime(wx Wx) {
 
 // Forecast prints a NOAA weather forecast
 func Forecast(wx Wx) {
+
+	// Data
 	PlaceTime(wx)
 	t := len(wx.Parameter.Description)
+
+	// Print
 	for i, Time := range wx.HalfDay[0:t] {
-		fmt.Printf("%s: %s\n", Time.Value, wx.Parameter.Description[i])
+		fmt.Println(Time.Value)
+		doc.ToText(os.Stdout, wx.Parameter.Description[i],
+			"    ", "", 60)
 	}
 }
 
@@ -155,7 +163,7 @@ USAGE:
 VERSION:
    {{.Version}}
 
-AUTHOR(S): 
+AUTHOR(S):
    {{range .Authors}}{{ . }}
    {{end}}
 COMMANDS:
